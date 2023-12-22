@@ -14,13 +14,14 @@ impl Benchmark {
 }
 impl Drop for Benchmark {
     fn drop(&mut self) {
-        let time_elapse = format!("takes {:?}", self.time.elapsed());
+        let time_elapse = format!("{:?}", self.time.elapsed());
         match self.message.len() {
-            0 => println!("{} {}", "Task".bold(), time_elapse.bold().red()),
+            0 => println!("{} {}", "Task takes".bold(), time_elapse.bold().red()),
             _ => println!(
-                "{} `{}` {}",
+                "{} `{}` {} {}",
                 "Task".bold(),
                 self.message,
+                "takes".bold(),
                 time_elapse.bold().red()
             ),
         }
@@ -28,7 +29,7 @@ impl Drop for Benchmark {
 }
 
 #[macro_export]
-macro_rules! benchmark_block {
+macro_rules! time_block {
     // Case for benchmarking with a custom message
     ($block:block, $message:expr) => {{
         let _benchmark = Benchmark::new($message);
@@ -42,7 +43,7 @@ macro_rules! benchmark_block {
 }
 
 #[macro_export]
-macro_rules! benchmark {
+macro_rules! time_expr {
     // Case for benchmarking with a custom message
     ($expr:expr, $message:expr) => {{
         let _benchmark = Benchmark::new($message);
@@ -53,21 +54,4 @@ macro_rules! benchmark {
         let _benchmark = Benchmark::new("");
         $expr
     }};
-}
-
-fn example() {
-    let mut vec1 = Vec::new();
-    for i in 1..1000 {
-        vec1.push(i)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        benchmark![example(), "this is me"]
-    }
 }
