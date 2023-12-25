@@ -3,8 +3,8 @@ use std::time::Duration;
 
 // use rayon::prelude::*;
 
-const N_DROP_MEASUREMENT: usize = 5; // number of measurements to drop (due to warm-up)
-const N_MEASUREMENT: usize = 10; // 10 is enough if the first several fluctuating measurements are dropped!
+pub const N_DROP_MEASUREMENT: usize = 5; // number of measurements to drop (due to warm-up)
+pub const N_MEASUREMENT: usize = 10; // 10 is enough if the first several fluctuating measurements are dropped!
 
 pub fn time_elapse_statistics(time_measurements: &[Duration], info: &str) {
     let total_time: Duration = time_measurements.iter().sum();
@@ -35,8 +35,6 @@ pub fn time_elapse_statistics(time_measurements: &[Duration], info: &str) {
 #[macro_export]
 macro_rules! time_block {
     ($block:block, $message:expr) => {{
-        use crate::N_MEASUREMENT;
-        use crate::N_DROP_MEASUREMENT;
         let mut time_measurements = [std::time::Duration::default(); N_MEASUREMENT];
         for i in 0..(N_DROP_MEASUREMENT + N_MEASUREMENT) {
             let start = std::time::Instant::now();
