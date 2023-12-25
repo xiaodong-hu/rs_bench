@@ -1,8 +1,10 @@
 use colored::*;
 use std::time::Duration;
 
+// use rayon::prelude::*;
+
 const N_DROP_MEASUREMENT: usize = 5; // number of measurements to drop (due to warm-up)
-const N_MEASUREMENT: usize = 5; // 5 is enough if the first several fluctuating measurements are dropped!
+const N_MEASUREMENT: usize = 10; // 10 is enough if the first several fluctuating measurements are dropped!
 
 pub fn time_elapse_statistics(time_measurements: &[Duration], info: &str) {
     let total_time: Duration = time_measurements.iter().sum();
@@ -33,6 +35,8 @@ pub fn time_elapse_statistics(time_measurements: &[Duration], info: &str) {
 #[macro_export]
 macro_rules! time_block {
     ($block:block, $message:expr) => {{
+        use crate::N_MEASUREMENT;
+        use crate::N_DROP_MEASUREMENT;
         let mut time_measurements = [std::time::Duration::default(); N_MEASUREMENT];
         for i in 0..(N_DROP_MEASUREMENT + N_MEASUREMENT) {
             let start = std::time::Instant::now();
@@ -45,21 +49,43 @@ macro_rules! time_block {
         time_elapse_statistics(&time_measurements, $message);
     }};
     ($block:block) => {{
-        time_block!($block, "default")
+        time_block![$block, "default"]
     }};
 }
 
 #[macro_export]
 macro_rules! time_expr {
     ($expr:expr, $message:expr) => {{
-        time_block!(
+        time_block![
             {
                 $expr;
             },
             $message
-        )
+        ]
     }};
     ($expr:expr) => {{
         time_expr!($expr, "default")
     }};
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn dot_test(v1: &[f64], v2: &[f64]) {
+        let res = v1.iter().zip(v2.iter()).map(|(&a, &b)| a * b).sum::<f64>();
+        // dbg!(res);
+    }
+
+    #[test]
+    fn it_works() {
+        let mut vec1 = Vec::new();
+        for i in 1..100000 {
+            vec1.push((i as f64).sqrt())
+        }
+        let vec2 = vec1.clone();
+
+        time_expr![dot_test(&vec1, &vec2), "this is me"];
+        time_block![{ dot_test(&vec1, &vec2) }, "this is me"]
+    }
 }
