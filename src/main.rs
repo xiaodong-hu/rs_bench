@@ -3,20 +3,20 @@
 mod lib;
 use lib::*;
 
-fn test() {
-    let mut vec1 = Vec::new();
-    for i in 1..1000 {
-        vec1.push(i)
-    }
-    let vec2 = vec1.clone();
-    let res = vec1
-        .iter()
-        .zip(vec2.iter())
-        .fold(0, |acc, (a, b)| acc + a * b);
+const N_DROP_MEASUREMENT: usize = 5; // number of measurements to drop (due to warm-up)
+const N_MEASUREMENT: usize = 5; // 5 is enough if the first several fluctuating measurements are dropped!
 
-    dbg!(res);
+fn dot_test(v1: &[f64], v2: &[f64]) {
+    let res = v1.iter().zip(v2.iter()).map(|(&a, &b)| a * b).sum::<f64>();
+    // dbg!(res);
 }
 
 fn main() {
-    time_block![{ test() }]
+    let mut vec1 = Vec::new();
+    for i in 1..100000 {
+        vec1.push((i as f64).sqrt())
+    }
+    let vec2 = vec1.clone();
+
+    time_block![{ dot_test(&vec1, &vec2) }, "this is me"]
 }
