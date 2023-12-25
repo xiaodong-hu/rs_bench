@@ -1,3 +1,5 @@
+#![feature(duration_abs_diff)]
+
 mod lib;
 use lib::*;
 
