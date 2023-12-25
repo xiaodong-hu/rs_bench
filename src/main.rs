@@ -18,5 +18,6 @@ fn main() {
     }
     let vec2 = vec1.clone();
 
+    time_expr![dot_test(&vec1, &vec2), "this is me"];
     time_block![{ dot_test(&vec1, &vec2) }, "this is me"]
 }

@@ -1,6 +1,9 @@
 use colored::*;
 use std::time::Duration;
 
+const N_DROP_MEASUREMENT: usize = 5; // number of measurements to drop (due to warm-up)
+const N_MEASUREMENT: usize = 5; // 5 is enough if the first several fluctuating measurements are dropped!
+
 pub fn time_elapse_statistics(time_measurements: &[Duration], info: &str) {
     let total_time: Duration = time_measurements.iter().sum();
     let mean_time = total_time / (time_measurements.len() as u32);
