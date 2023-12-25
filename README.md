@@ -1,25 +1,26 @@
 # rs_bench
-simple function call and expression block benchmark macro
+simple function call and expression block benchmark macro (after dropping of first five fluctuating measurements)
 
 ### Usage
 ```rust
-fn test(n: i32) {
-    let mut vec1 = Vec::new();
-    for i in 1..n {
-        vec1.push(i)
-    }
-    let vec2 = vec1.clone();
-    let res = vec1
-        .iter()
-        .zip(vec2.iter())
-        .fold(0, |acc, (a, b)| acc + a * b);
-
-    dbg!(res);
+fn dot_test(v1: &[f64], v2: &[f64]) {
+    let res = v1.iter().zip(v2.iter()).map(|(&a, &b)| a * b).sum::<f64>();
+    // dbg!(res);
 }
 
-benchmark!(test(1000), "this is me");
+fn main() {
+    let mut vec1 = Vec::new();
+    for i in 1..100000 {
+        vec1.push((i as f64).sqrt())
+    }
+    let vec2 = vec1.clone();
+
+    time_expr![dot_test(&vec1, &vec2), "this is me"]; // works for one-line function calls
+    time_block![{ dot_test(&vec1, &vec2) }, "this is me"] // works for mearsurment of blocks
+}
+
 /*
-gives [src/lib.rs:69] res = 332833500
-Task `this is me` takes 111.813µs
+Task `this is me` takes 32ns ± 2ns
+Task `this is me` takes 31ns ± 1ns
 */
 ```
