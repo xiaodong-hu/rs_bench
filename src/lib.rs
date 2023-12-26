@@ -45,18 +45,16 @@ macro_rules! time_block {
         dbg!(drop_shift);
         let mean_time = format!("{:?}", mean_time);
         let std_deviation = format!("{:?}", std::time::Duration::from_secs_f64(std_deviation));
-        {
-            use colored::Colorize;
-            println!(
-                "{} `{}` {} {}{}{}",
-                "Task".bold(),
-                $message.italic().bold(),
-                "takes".bold(),
-                mean_time.bold().red(),
-                "±".bold(),
-                std_deviation.bold().red()
-            );
-        }
+        use colored::Colorize;
+        println!(
+            "{} `{}` {} {}{}{}",
+            "Task".bold(),
+            $message.italic().bold(),
+            "takes".bold(),
+            mean_time.bold().red(),
+            "±".bold(),
+            std_deviation.bold().red()
+        );
     }};
     ($block:block) => {{
         time_block![$block, "default"]
