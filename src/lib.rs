@@ -1,4 +1,3 @@
-use colored::*;
 use std::time::Duration;
 
 // use rayon::prelude::*;
@@ -44,6 +43,8 @@ macro_rules! time_block {
         dbg!(drop_shift);
         let mean_time = format!("{:?}", mean_time);
         let std_deviation = format!("{:?}", std::time::Duration::from_secs_f64(std_deviation));
+
+        use colored::*;
         println!(
             "{} `{}` {} {}{}{}",
             "Task".bold(),
