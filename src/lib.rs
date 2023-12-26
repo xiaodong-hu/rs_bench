@@ -27,7 +27,7 @@ macro_rules! time_block {
     ($block:block, $message:expr) => {{
         let (mut mean_time,mut std_deviation) = (std::time::Duration::new(1,0),1.0);
         let mut drop_shift = 1; // automatically adjust the number of dropped measurements
-        while std_deviation/mean_time.as_secs_f64() > 0.3 {
+        while std_deviation/mean_time.as_secs_f64() > 0.2 {
             let mut time_measurements = [std::time::Duration::default(); N_MEASUREMENT];
             for i in 0..(drop_shift + N_DROP_MEASUREMENT + N_MEASUREMENT) {
                 let start = std::time::Instant::now();
@@ -43,9 +43,9 @@ macro_rules! time_block {
 
         dbg!(drop_shift);
         let mean_time = format!("{:?}", mean_time);
-        let std_deviation = format!("{:?}", Duration::from_secs_f64(std_deviation));
+        let std_deviation = format!("{:?}", std::time::Duration::from_secs_f64(std_deviation));
         println!(
-            "{} `{}` {} {} {} {}",
+            "{} `{}` {} {}{}{}",
             "Task".bold(),
             $message.italic().bold(),
             "takes".bold(),
