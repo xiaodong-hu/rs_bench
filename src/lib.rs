@@ -3,10 +3,10 @@ use std::time::Duration;
 
 // use rayon::prelude::*;
 
-pub const N_DROP_MEASUREMENT: usize = 5; // number of measurements to drop (due to warm-up)
-pub const N_MEASUREMENT: usize = 10; // 10 is enough if the first several fluctuating measurements are dropped!
+pub const N_DROP_MEASUREMENT: usize = 10; // number of measurements to drop (due to warm-up)
+pub const N_MEASUREMENT: usize = 5; // 10 is enough if the first several fluctuating measurements are dropped!
 
-pub fn time_elapse_statistics(time_measurements: &[Duration], info: &str) {
+pub fn time_elapse_statistics(time_measurements: &[Duration]) -> (Duration, f64) {
     let total_time: Duration = time_measurements.iter().sum();
     let mean_time = total_time / (time_measurements.len() as u32);
     let variance: f64 = time_measurements
@@ -19,32 +19,40 @@ pub fn time_elapse_statistics(time_measurements: &[Duration], info: &str) {
         / time_measurements.len() as f64;
     let std_deviation = variance.sqrt();
 
-    let mean_time = format!("{:?}", mean_time);
-    let std_deviation = format!("{:?}", Duration::from_secs_f64(std_deviation));
-    println!(
-        "{} `{}` {} {} {} {}",
-        "Task".bold(),
-        info.italic().bold(),
-        "takes".bold(),
-        mean_time.bold().red(),
-        "±".bold(),
-        std_deviation.bold().red()
-    );
+    return (mean_time, std_deviation);
 }
 
 #[macro_export]
 macro_rules! time_block {
     ($block:block, $message:expr) => {{
-        let mut time_measurements = [std::time::Duration::default(); N_MEASUREMENT];
-        for i in 0..(N_DROP_MEASUREMENT + N_MEASUREMENT) {
-            let start = std::time::Instant::now();
-            $block
-            if i >= N_DROP_MEASUREMENT {
-                time_measurements[i - N_DROP_MEASUREMENT] = start.elapsed();
+        let (mut mean_time,mut std_deviation) = (std::time::Duration::new(1,0),1.0);
+        let mut drop_shift = 1; // automatically adjust the number of dropped measurements
+        while std_deviation/mean_time.as_secs_f64() > 0.3 {
+            let mut time_measurements = [std::time::Duration::default(); N_MEASUREMENT];
+            for i in 0..(drop_shift + N_DROP_MEASUREMENT + N_MEASUREMENT) {
+                let start = std::time::Instant::now();
+                $block
+                if i >= drop_shift + N_DROP_MEASUREMENT {
+                    time_measurements[i - N_DROP_MEASUREMENT - drop_shift] = start.elapsed();
+                }
             }
+            // dbg!(time_measurements);
+            (mean_time, std_deviation) = time_elapse_statistics(&time_measurements);
+            drop_shift += 2;
         }
-        // dbg!(time_measurements);
-        time_elapse_statistics(&time_measurements, $message);
+
+        dbg!(drop_shift);
+        let mean_time = format!("{:?}", mean_time);
+        let std_deviation = format!("{:?}", Duration::from_secs_f64(std_deviation));
+        println!(
+            "{} `{}` {} {} {} {}",
+            "Task".bold(),
+            $message.italic().bold(),
+            "takes".bold(),
+            mean_time.bold().red(),
+            "±".bold(),
+            std_deviation.bold().red()
+        );
     }};
     ($block:block) => {{
         time_block![$block, "default"]
