@@ -26,12 +26,14 @@ macro_rules! time_block {
     ($block:block, $message:expr) => {{
         let (mut mean_time,mut std_deviation) = (std::time::Duration::new(1,0),1.0);
         let mut drop_shift = 1; // automatically adjust the number of dropped measurements
-        while std_deviation/mean_time.as_secs_f64() > 0.2 {
+        while std_deviation / mean_time.as_secs_f64() > 0.2 {
             let mut time_measurements = [std::time::Duration::default(); N_MEASUREMENT];
             for i in 0..(drop_shift + N_DROP_MEASUREMENT + N_MEASUREMENT) {
                 let start = std::time::Instant::now();
                 $block
-                if i >= drop_shift + N_DROP_MEASUREMENT {
+                if i <= drop_shift + N_DROP_MEASUREMENT {
+                    // do nothing; warm-up $block for first several runnings
+                } else {
                     time_measurements[i - N_DROP_MEASUREMENT - drop_shift] = start.elapsed();
                 }
             }
@@ -43,17 +45,18 @@ macro_rules! time_block {
         dbg!(drop_shift);
         let mean_time = format!("{:?}", mean_time);
         let std_deviation = format!("{:?}", std::time::Duration::from_secs_f64(std_deviation));
-
-        use colored::*;
-        println!(
-            "{} `{}` {} {}{}{}",
-            "Task".bold(),
-            $message.italic().bold(),
-            "takes".bold(),
-            mean_time.bold().red(),
-            "±".bold(),
-            std_deviation.bold().red()
-        );
+        {
+            use colored::Colorize;
+            println!(
+                "{} `{}` {} {}{}{}",
+                "Task".bold(),
+                $message.italic().bold(),
+                "takes".bold(),
+                mean_time.bold().red(),
+                "±".bold(),
+                std_deviation.bold().red()
+            );
+        }
     }};
     ($block:block) => {{
         time_block![$block, "default"]
